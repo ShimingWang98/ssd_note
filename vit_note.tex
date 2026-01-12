@@ -1,0 +1,41 @@
+\documentclass{article}
+\usepackage{graphicx} % Required for inserting images
+\usepackage{ctex}
+\usepackage{hyperref}
+\usepackage{amsmath}
+\usepackage{enumitem}
+\title{vit}
+\setlength{\parindent}{0pt}
+\begin{document}
+
+\maketitle
+Step 1：train original model $\theta^+$ on entire transet $D$ (Cifar-10 train)
+\vspace{0.8em}
+
+Step 2: 用SSD unlearn forget set $D_f\in D$, 得到after model $\theta^-$. $D_f$只取一个数据点（实验里取30 40个$D_f$重复实验）。
+
+算法在ssd.pdf（4）式，代码实现在：\href{https://github.com/if-loops/selective-synaptic-dampening}{ssd repo}
+\vspace{0.8em}
+
+Step 3: 攻击，从$\theta^+$到$\theta^-$的变化推断$x$。
+
+计算$\beta = [\beta_i]= [\dfrac{\theta^-_i}{\theta^+_i}], i\in [0,|\theta^+|] $
+
+从Cifar-10 train和Cifar-10 test中各选n个sample，再加入$D_f$, 组成candidate pool $C$.
+
+\vspace{0.8em}
+For each candidate $x$:
+\begin{itemize}[label=\null, leftmargin=2em]
+    \item compute $\theta^{-x}=\mathcal{U}(\theta^+, x)$ ($\mathcal{U}$是(4)式。攻击者不知道real $D$, 用同分布$D'$近似 eg. Cifar10-test or subset of Cifar10-train) (实验里重跑SSD,把输入的$D_f$改成candidate $x$, $D$改成$D'$)
+    \item compute $\beta^x = [\dfrac{\theta^{-x}_i}{\theta_i}], i\in [0,|\theta^+|]$
+\end{itemize}
+
+
+
+
+$\hat{x}=\arg \max_{x} cos\_sim(\beta, \beta^x)$
+
+实验里保存每个$D_f$下 每个candidate对应的cos\_sim
+
+
+\end{document}
